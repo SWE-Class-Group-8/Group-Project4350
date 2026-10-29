@@ -12,17 +12,22 @@
     <h1>Agent Appetite</h1>
     <div id="world"><div id="player"></div></div>
 
+    <script src="movement.js"></script>
     <script>
         const player = document.getElementById('player');
-        let x = 200, y = 120;
+        const world = document.getElementById('world');
+        let position = { x: 200, y: 120 };
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'w') y -= 10;
-            if (e.key === 's') y += 10;
-            if (e.key === 'a') x -= 10;
-            if (e.key === 'd') x += 10;
-            player.style.left = x + 'px';
-            player.style.top = y + 'px';
+            const bounds = {
+                minX: 0,
+                maxX: world.clientWidth - player.offsetWidth,
+                minY: 0,
+                maxY: world.clientHeight - player.offsetHeight,
+            };
+            position = movePlayer(position, e.key, bounds);
+            player.style.left = position.x + 'px';
+            player.style.top = position.y + 'px';
         });
     </script>
 </body>

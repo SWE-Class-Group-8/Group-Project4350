@@ -7,3 +7,5 @@ This is a Github Repo for  SOFTWARE ENGINEERING-CTW (4350) Group Project with Me
 ```
 npm test
 ```
+### Backend Setup Note
+Ensure PostgreSQL and pgvector are installed before running the backend server.

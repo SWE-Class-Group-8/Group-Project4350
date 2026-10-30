@@ -18,3 +18,24 @@ CREATE TABLE IF NOT EXISTS npc (
     description TEXT,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
+
+-- MEMORY table
+-- Stores conversations and interactions between players and NPCs
+
+CREATE TABLE IF NOT EXISTS memory (
+    memory_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+
+    player_id INTEGER NOT NULL,
+    npc_id INTEGER NOT NULL,
+    
+    player_message TEXT NOT NULL,
+    npc_response TEXT,
+
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (player_id) REFERENCES player(player_id),
+    FOREIGN KEY (npc_id) REFERENCES npc(npc_id)
+);
+
+
+

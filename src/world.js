@@ -35,5 +35,18 @@
         return best;
     }
 
-    return { WIDTH, HEIGHT, PLAYER_SIZE, INTERACT_RADIUS, NPCS, BOUNDS, distance, nearestNpc };
+    const EMOTIONS = ['neutral', 'happy', 'sad', 'angry', 'annoyed'];
+    const state = { emotions: {} };
+
+    function getEmotion(npcId, st = state) {
+        return st.emotions[npcId] || 'neutral';
+    }
+
+    // Call this once the API returns an emotion for an NPC. Unknown values fall back to neutral.
+    function setEmotion(npcId, emotion, st = state) {
+        st.emotions[npcId] = EMOTIONS.includes(emotion) ? emotion : 'neutral';
+        return st.emotions[npcId];
+    }
+
+    return { EMOTIONS, state, getEmotion, setEmotion, WIDTH, HEIGHT, PLAYER_SIZE, INTERACT_RADIUS, NPCS, BOUNDS, distance, nearestNpc };
 });

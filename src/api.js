@@ -8,9 +8,10 @@
     const KEY = 'agent-appetite-mock-db';
     const load = () => JSON.parse(storage.getItem(KEY) || '{"players":{},"facts":{},"history":{}}');
     const save = (db) => storage.setItem(KEY, JSON.stringify(db));
+    const NAMES = { chef_mario: 'Chef Mario', cashier_bruce: 'Cashier Bruce', customer_matthew: 'Customer Matthew' };
     const pair = (player, npcId) => `${player}::${npcId}`;
 
-    function register(username, password) {
+    async function register(username, password) {
         const name = (username || '').trim();
         if (!name || !password) throw new Error('Username and password are required.');
         const db = load();
@@ -20,7 +21,7 @@
         return { username: name };
     }
 
-    function login(username, password) {
+    async function login(username, password) {
         const name = (username || '').trim();
         const db = load();
         if (!db.players[name] || db.players[name].password !== password) {
@@ -53,16 +54,21 @@
         db.facts[key] = facts;
         (db.history[key] = db.history[key] || []).push({ player: text, npc: reply });
         save(db);
-        return reply;
+        return { reply, emotion: 'neutral', provider: 'mock' };
     }
 
-    function memories(username) {
+    async function memories(username) {
         const db = load();
         const prefix = `${username}::`;
         return Object.keys(db.facts)
             .filter((k) => k.startsWith(prefix))
-            .map((k) => ({ npcId: k.slice(prefix.length), facts: db.facts[k] }));
+            .map((k) => {
+                const npcId = k.slice(prefix.length);
+                return { npcId, npcName: NAMES[npcId] || npcId, facts: db.facts[k], relationship: { score: 0, status: 'Neutral' } };
+            });
     }
 
-    return { register, login, talk, memories };
+    function logout() {}
+
+    return { register, login, talk, memories, logout };
 });

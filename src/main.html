@@ -1,34 +1,85 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
     <title>Agent Appetite</title>
     <style>
-        body { background: #1a1a2e; color: #eee; font-family: sans-serif; text-align: center; }
-        #player { width: 40px; height: 40px; background: #4ecdc4; border-radius: 50%; position: absolute; }
-        #world { position: relative; height: 300px; background: #2d4a3e; margin: 20px; }
+        body { background: #1a1a2e; color: #eee; font-family: monospace; text-align: center; margin: 0; padding: 20px; }
+        h1 { letter-spacing: 4px; }
+        .hidden { display: none !important; }
+        button { background: #4ecdc4; border: 0; padding: 10px 24px; margin: 6px; font: inherit; cursor: pointer; color: #1a1a2e; }
+        input[type=text], input[type=password] { padding: 8px; font: inherit; }
+        .panel { max-width: 360px; margin: 40px auto; }
+        .panel label { display: block; margin: 10px 0; text-align: left; }
+        .panel label input[type=text], .panel label input[type=password], .panel label input[type=range] { width: 100%; box-sizing: border-box; }
+        #auth-error { color: #ff6b6b; min-height: 1.2em; }
+        #world { position: relative; width: 640px; margin: 0 auto; }
+        #game { display: block; border: 4px solid #333; }
+        #hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        #prompt { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: #000a; padding: 6px 12px; }
+        #dialogue, #memory { position: absolute; left: 0; right: 0; bottom: 0; background: #111e; padding: 12px; text-align: left; }
+        #dialogue-log { height: 110px; overflow-y: auto; margin-bottom: 8px; }
+        #dialogue-log p, #memory p { margin: 4px 0; }
+        #dialogue-input { width: 60%; }
     </style>
 </head>
 <body>
-    <h1>Agent Appetite</h1>
-    <div id="world"><div id="player"></div></div>
+    <h1>AGENT APPETITE</h1>
+
+    <div id="menu" class="panel">
+        <button id="btn-login">LOGIN</button><br>
+        <button id="btn-register">REGISTER</button><br>
+        <button id="btn-settings">SETTINGS</button><br>
+        <button id="btn-exit">EXIT</button>
+    </div>
+
+    <div id="auth" class="panel hidden">
+        <h2 id="auth-title">Log In</h2>
+        <form id="auth-form">
+            <label>Username: <input type="text" id="username" autocomplete="username"></label>
+            <label>Password: <input type="password" id="password" autocomplete="current-password"></label>
+            <p id="auth-error"></p>
+            <button type="submit" id="auth-submit">LOG IN</button>
+        </form>
+        <button id="auth-toggle">Register new account</button>
+        <button id="auth-back">BACK</button>
+    </div>
+
+    <div id="settings" class="panel hidden">
+        <h2>Settings</h2>
+        <label>Audio volume: <input type="range" id="set-volume" min="1" max="10" value="5"></label>
+        <label>Text speed: <input type="range" id="set-speed" min="1" max="10" value="5"></label>
+        <label><input type="checkbox" id="set-full"> Full screen</label>
+        <button id="settings-save">SAVE</button>
+        <button id="settings-back">BACK</button>
+    </div>
+
+    <div id="world" class="hidden">
+        <div id="hud">
+            <span>Player: <strong id="hud-user"></strong></span>
+            <span>WASD move &middot; E talk &middot; M memories</span>
+            <button id="btn-logout">LOG OUT</button>
+        </div>
+        <canvas id="game"></canvas>
+        <div id="prompt" class="hidden"></div>
+        <div id="dialogue" class="hidden">
+            <strong id="dialogue-name"></strong>
+            <div id="dialogue-log"></div>
+            <form id="dialogue-form">
+                <input type="text" id="dialogue-input" placeholder="Say something..." autocomplete="off">
+                <button type="submit">SAY</button>
+                <button type="button" id="dialogue-goodbye">GOODBYE</button>
+            </form>
+        </div>
+        <div id="memory" class="hidden">
+            <strong>NPC Memory</strong>
+            <div id="memory-list"></div>
+        </div>
+    </div>
 
     <script src="movement.js"></script>
-    <script>
-        const player = document.getElementById('player');
-        const world = document.getElementById('world');
-        let position = { x: 200, y: 120 };
-
-        document.addEventListener('keydown', (e) => {
-            const bounds = {
-                minX: 0,
-                maxX: world.clientWidth - player.offsetWidth,
-                minY: 0,
-                maxY: world.clientHeight - player.offsetHeight,
-            };
-            position = movePlayer(position, e.key, bounds);
-            player.style.left = position.x + 'px';
-            player.style.top = position.y + 'px';
-        });
-    </script>
+    <script src="world.js"></script>
+    <script src="api.js"></script>
+    <script src="game.js"></script>
 </body>
 </html>

@@ -17,25 +17,29 @@ test('nearestNpc returns null when no NPC is in range', () => {
     assert.strictEqual(nearestNpc({ x: 1000, y: 1000 }), null);
 });
 
-test('register rejects a duplicate username', () => {
+test('register rejects a duplicate username', async () => {
     const api = createMockApi(memoryStorage());
-    api.register('sam', 'pw');
-    assert.throws(() => api.register('sam', 'other'), /already taken/);
+    await api.register('sam', 'pw');
+    await assert.rejects(api.register('sam', 'other'), /already taken/);
 });
 
-test('login rejects a wrong password and accepts the right one', () => {
+test('login rejects a wrong password and accepts the right one', async () => {
     const api = createMockApi(memoryStorage());
-    api.register('sam', 'pw');
-    assert.throws(() => api.login('sam', 'nope'), /Incorrect/);
-    assert.strictEqual(api.login('sam', 'pw').username, 'sam');
+    await api.register('sam', 'pw');
+    await assert.rejects(api.login('sam', 'nope'), /Incorrect/);
+    assert.strictEqual((await api.login('sam', 'pw')).username, 'sam');
 });
 
 test('NPC memory is separate per player and per NPC', async () => {
     const api = createMockApi(memoryStorage());
-    api.register('a', 'pw');
-    api.register('b', 'pw');
-    await api.talk('a', 'chef_mario', 'I love pizza');
-    assert.match(await api.talk('a', 'chef_mario', 'What is my favorite hobby?'), /pizza/);
-    assert.match(await api.talk('b', 'chef_mario', 'What is my favorite hobby?'), /haven't told me/);
-    assert.match(await api.talk('a', 'cashier_bruce', 'What is my favorite hobby?'), /haven't told me/);
+    await api.register('a', 'pw');
+    await api.register('b', 'pw');
+    const first = await api.talk('a', 'chef_mario', 'I love pizza');
+    assert.deepStrictEqual([first.emotion, first.provider], ['neutral', 'mock']);
+    assert.match((await api.talk('a', 'chef_mario', 'What is my favorite hobby?')).reply, /pizza/);
+    assert.match((await api.talk('b', 'chef_mario', 'What is my favorite hobby?')).reply, /haven't told me/);
+    assert.match((await api.talk('a', 'cashier_bruce', 'What is my favorite hobby?')).reply, /haven't told me/);
+    const mems = await api.memories('a');
+    assert.strictEqual(mems[0].npcName, 'Chef Mario');
+    assert.ok(mems[0].relationship);
 });

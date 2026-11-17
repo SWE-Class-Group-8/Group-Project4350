@@ -1,6 +1,17 @@
 (function () {
     const { WIDTH, HEIGHT, PLAYER_SIZE, NPCS, BOUNDS, nearestNpc } = World;
-    const api = createMockApi(window.localStorage);
+    const params = new URLSearchParams(window.location.search);
+    const api = params.get('mock') === '1'
+        ? createMockApi(window.localStorage)
+        : createHttpApi({ baseUrl: window.API_BASE_URL || 'http://localhost:3000', storage: window.localStorage });
+    let toastTimer = null;
+    function toast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.add('hidden'), 4000);
+    }
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     canvas.width = WIDTH;
@@ -42,11 +53,11 @@
         show('menu');
     };
 
-    $('auth-form').onsubmit = (e) => {
+    $('auth-form').onsubmit = async (e) => {
         e.preventDefault();
         try {
             const fn = authMode === 'login' ? api.login : api.register;
-            user = fn($('username').value, $('password').value);
+            user = await fn($('username').value, $('password').value);
             $('hud-user').textContent = user.username;
             show('world');
             draw();
@@ -55,7 +66,7 @@
         }
     };
 
-    $('btn-logout').onclick = () => { user = null; closeDialogue(); show('menu'); };
+    $('btn-logout').onclick = () => { api.logout(); user = null; closeDialogue(); show('menu'); };
 
     function openDialogue(npc) {
         talkingTo = npc;
@@ -83,26 +94,42 @@
         const input = $('dialogue-input');
         const text = input.value.trim();
         if (!text || !talkingTo) return;
+        const npc = talkingTo;
+        const sayBtn = $('dialogue-say');
         input.value = '';
         addLine(user.username, text);
-        const reply = await api.talk(user.username, talkingTo.id, text);
-        addLine(talkingTo.name, reply);
+        sayBtn.disabled = true;
+        $('thinking').classList.remove('hidden');
+        try {
+            const res = await api.talk(user.username, npc.id, text);
+            addLine(npc.name, res.reply);
+        } catch (err) {
+            toast(err.message);
+        } finally {
+            sayBtn.disabled = false;
+            $('thinking').classList.add('hidden');
+        }
     };
     $('dialogue-goodbye').onclick = closeDialogue;
 
-    function toggleMemory() {
+    async function toggleMemory() {
         const panel = $('memory');
         panel.classList.toggle('hidden');
         if (panel.classList.contains('hidden')) return;
         const list = $('memory-list');
         list.innerHTML = '';
-        const mems = api.memories(user.username);
+        let mems;
+        try {
+            mems = await api.memories(user.username);
+        } catch (err) {
+            toast(err.message);
+            return;
+        }
         if (!mems.length) list.textContent = 'No memories yet. Go talk to someone.';
         mems.forEach((m) => {
-            const npc = NPCS.find((n) => n.id === m.npcId);
-            const li = document.createElement('p');
+                        const li = document.createElement('p');
             const facts = Object.entries(m.facts).map(([k, v]) => `${k}: ${v}`).join(', ');
-            li.textContent = `${npc ? npc.name : m.npcId} - ${facts || 'nothing yet'}`;
+            li.textContent = `${m.npcName || m.npcId} - ${facts || 'nothing yet'}${m.relationship ? ` (${m.relationship.status})` : ''}`;
             list.appendChild(li);
         });
     }

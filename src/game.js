@@ -122,46 +122,34 @@
         } else if (key === 'escape') {
             closeDialogue();
         } else if (!talkingTo) {
-            position = movePlayer(position, key, BOUNDS);
+            const moved = moveWithCollision(position, key, BOUNDS);
+            Sprites.recordMove(key, moved !== position);
+            position = moved;
         }
         draw();
     });
 
-    function drawPerson(x, y, color) {
-        ctx.fillStyle = '#00000044';
-        ctx.fillRect(x + 4, y + PLAYER_SIZE - 4, PLAYER_SIZE - 8, 4);
-        ctx.fillStyle = color;
-        ctx.fillRect(x + 6, y + 12, PLAYER_SIZE - 12, PLAYER_SIZE - 16);
-        ctx.fillStyle = '#ffd7b5';
-        ctx.fillRect(x + 8, y, PLAYER_SIZE - 16, 14);
-        ctx.fillStyle = '#222';
-        ctx.fillRect(x + 11, y + 5, 3, 3);
-        ctx.fillRect(x + PLAYER_SIZE - 14, y + 5, 3, 3);
-    }
-
     function draw() {
-        ctx.fillStyle = '#c9a87a';
-        ctx.fillRect(0, 0, WIDTH, HEIGHT);
-        ctx.fillStyle = '#8b5e3c';
-        ctx.fillRect(0, 0, WIDTH, 50);
+        Sprites.drawTiles(ctx, Sprites.images, GameMap.TILES, GameMap.TILE);
         ctx.fillStyle = '#fff';
         ctx.font = '12px monospace';
         ctx.fillText('KITCHEN', 20, 20);
         ctx.fillText('COUNTER', 560, 20);
-        ctx.fillStyle = '#a0522d';
-        [[240, 260], [440, 200], [120, 220]].forEach(([x, y]) => ctx.fillRect(x, y, 64, 36));
 
         NPCS.forEach((npc) => {
-            drawPerson(npc.x, npc.y, npc.color);
+            Sprites.drawCharacter(ctx, Sprites.images, npc.id, npc.x, npc.y, npc.color);
+            Sprites.drawEmotion(ctx, npc.x, npc.y - 12, World.getEmotion(npc.id));
             ctx.fillStyle = '#222';
             ctx.fillText(npc.name, npc.x - 16, npc.y - 6);
         });
-        drawPerson(position.x, position.y, '#4ecdc4');
+        const p = Sprites.player;
+        Sprites.drawCharacter(ctx, Sprites.images, 'player', position.x, position.y, '#4ecdc4', p.facing, p.steps, p.moving);
 
         const near = nearestNpc(position);
         $('prompt').classList.toggle('hidden', !near || !!talkingTo);
         if (near) $('prompt').textContent = `Press E to talk to ${near.name}`;
     }
 
+    Sprites.init().then(draw);
     show('menu');
 })();

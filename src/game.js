@@ -1,9 +1,10 @@
 (function () {
     const { WIDTH, HEIGHT, VIEW_W, VIEW_H, NPCS, BOUNDS, nearestNpc } = World;
     const params = new URLSearchParams(window.location.search);
-    const api = params.get('mock') === '1'
+    const backend = window.API_BASE_URL || (window.location.port === '3000' ? window.location.origin : params.get('api') === '1' ? 'http://localhost:3000' : null);
+    const api = params.get('mock') === '1' || !backend
         ? createMockApi(window.localStorage)
-        : createHttpApi({ baseUrl: window.API_BASE_URL || (window.location.port === '3000' ? window.location.origin : 'http://localhost:3000'), storage: window.localStorage });
+        : createHttpApi({ baseUrl: backend, storage: window.localStorage });
     let toastTimer = null;
     function toast(msg) {
         const el = document.getElementById('toast');

@@ -54,7 +54,7 @@ The game loads art from `assets/`, so serve the repo root over HTTP (opening the
 python3 -m http.server 8000        # then open http://localhost:8000/src/main.html?mock=1
 ```
 
-`?mock=1` plays against the in-browser mock (accounts and memories live in your browser only). With the backend running (`npm start`, which also serves `/src` and `/assets`), open `http://localhost:3000/src/main.html` instead. Move with W/A/S/D, press E near an NPC to talk, M for the memory panel. Art credits and the asset pack layout are in `assets/PACK_README.txt`.
+The game plays against the in-browser mock by default (accounts and memories live in your browser only); add `?api=1` to use a backend on `localhost:3000`. With the backend running (`npm start`, which also serves `/src` and `/assets`), open `http://localhost:3000/src/main.html` instead. Move with W/A/S/D, press E near an NPC to talk, M for the memory panel. Art credits and the asset pack layout are in `assets/PACK_README.txt`.
 
 ## Running tests
 

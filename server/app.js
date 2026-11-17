@@ -7,6 +7,14 @@ const { requireAuth } = require('./auth');
 // a function (app, { pool, requireAuth }) called before the 404 handler.
 function createApp({ pool, extraRoutes } = {}) {
   const app = express();
+  app.use((req, res, next) => {
+    const allowed = (process.env.CORS_ORIGIN || '*').trim();
+    res.set('Access-Control-Allow-Origin', allowed);
+    res.set('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+  });
   app.use(express.json());
 
   app.use('/api', createAuthRouter({ pool }));

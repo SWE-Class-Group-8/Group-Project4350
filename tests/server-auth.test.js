@@ -129,3 +129,16 @@ test('GET /api/npcs requires a token and lists npcs', () =>
     assert.strictEqual(r.status, 200);
     assert.deepStrictEqual(r.json.npcs[0], { id: 'chef_mario', name: 'Chef Mario', role: 'Chef' });
   }));
+
+test('OPTIONS preflight returns CORS headers allowing Authorization', async () => {
+  const server = createApp({ pool: fakePool() }).listen(0);
+  await new Promise((r) => server.once('listening', r));
+  try {
+    const res = await fetch(`http://127.0.0.1:${server.address().port}/api/login`, { method: 'OPTIONS' });
+    assert.strictEqual(res.status, 204);
+    assert.match(res.headers.get('access-control-allow-headers'), /Authorization/);
+    assert.ok(res.headers.get('access-control-allow-origin'));
+  } finally {
+    server.close();
+  }
+});

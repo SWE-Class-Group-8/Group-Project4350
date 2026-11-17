@@ -207,6 +207,21 @@
     function startLoop() { if (!raf) raf = requestAnimationFrame(frame); }
     function stopLoop() { cancelAnimationFrame(raf); raf = null; }
 
+    function fit() {
+        const scale = Math.min(window.innerWidth / 960, window.innerHeight / 650);
+        const app = $('app');
+        app.style.transform = `scale(${scale})`;
+        app.style.top = `${Math.max(0, (window.innerHeight - 650 * scale) / 2)}px`;
+    }
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'F11' || (e.key.toLowerCase() === 'f' && e.target.tagName !== 'INPUT' && !user)) {
+            e.preventDefault();
+            document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+        }
+    });
+    window.addEventListener('resize', fit);
+    fit();
+
     Sprites.init();
     show('menu');
 })();

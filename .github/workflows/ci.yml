@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply schema and migrations
+        run: |
+          for f in database/schema.sql database/migrations/*.sql; do
+            psql postgres://postgres:postgres@localhost:5432/postgres -v ON_ERROR_STOP=1 -f "$f"
+          done
+
+  no-ai-attribution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Reject AI co-author trailers
+        run: |
+          range="origin/${{ github.base_ref }}..HEAD"
+          if git log "$range" --format='%an <%ae>%n%b' | grep -i -E 'co-authored-by:.*(claude|anthropic)|noreply@anthropic\.com'; then
+            echo "Remove Claude/Anthropic co-author lines from commit messages."
+            exit 1
+          fi

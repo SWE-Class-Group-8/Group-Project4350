@@ -41,12 +41,18 @@
         if (hobbyMatch) facts.hobby = hobbyMatch[1].trim();
 
         let reply;
-        if (/what.*(favorite )?hobby/i.test(text)) {
+        let emotion = 'neutral';
+        if (/\b(ugly|stupid|idiot|hate|terrible)\b/i.test(text)) {
+            reply = 'That was rude. I will remember that.';
+            emotion = 'angry';
+        } else if (/what.*(favorite )?hobby/i.test(text)) {
             reply = facts.hobby ? `You told me you like ${facts.hobby}.` : "You haven't told me your hobby yet.";
         } else if (nameMatch) {
             reply = `Nice to meet you, ${facts.name}!`;
+            emotion = 'happy';
         } else if (hobbyMatch) {
             reply = `${facts.hobby}? Sounds fun.`;
+            emotion = 'happy';
         } else {
             reply = facts.name ? `Hello again, ${facts.name}.` : 'Welcome in! What brings you here?';
         }
@@ -54,7 +60,7 @@
         db.facts[key] = facts;
         (db.history[key] = db.history[key] || []).push({ player: text, npc: reply });
         save(db);
-        return { reply, emotion: 'neutral', provider: 'mock' };
+        return { reply, emotion, provider: 'mock' };
     }
 
     async function memories(username) {

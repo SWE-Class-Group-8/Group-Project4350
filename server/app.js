@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const { createAuthRouter } = require('./routes/auth');
 const { createNpcsRouter } = require('./routes/npcs');
@@ -16,6 +17,8 @@ function createApp({ pool, extraRoutes } = {}) {
     next();
   });
   app.use(express.json());
+  app.use('/src', express.static(path.join(__dirname, '..', 'src')));
+  app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 
   app.use('/api', createAuthRouter({ pool }));
   app.use('/api/npcs', requireAuth, createNpcsRouter({ pool }));

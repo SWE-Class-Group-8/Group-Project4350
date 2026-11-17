@@ -8,7 +8,7 @@ A browser-based, small open-world restaurant game where AI NPCs remember each pl
 
 | Area | State |
 | --- | --- |
-| Browser client (`src/`) | Playable against a **mock backend** (browser `localStorage`): menu, register/login, world, NPC dialogue, memory panel. Art and menu are still being polished. |
+| Browser client (`src/`) | Playable against a **mock backend** (browser `localStorage`): menu, register/login, world, NPC dialogue, memory panel. Pixel art, portraits and UI from the asset pack are wired in. |
 | Backend server | **Not on `main` yet.** In progress on separate branches. The contract it must follow is [docs/api.md](docs/api.md). |
 | Database (`database/`) | Schema and a pgvector migration are on `main`. Merging the table definitions is in progress (KAN-21). |
 | LLM integration | **Planned**: DeepSeek primary, Gemini fallback. |
@@ -48,7 +48,13 @@ Never commit `.env`.
 
 ## Running the game client
 
-Open `src/main.html` in a modern desktop browser. Move with W/A/S/D and talk to NPCs when near them. Accounts and memories are stored in your browser only until the real backend is connected.
+The game loads art from `assets/`, so serve the repo root over HTTP (opening the file directly will not work):
+
+```
+python3 -m http.server 8000        # then open http://localhost:8000/src/main.html?mock=1
+```
+
+`?mock=1` plays against the in-browser mock (accounts and memories live in your browser only). With the backend running (`npm start`, which also serves `/src` and `/assets`), open `http://localhost:3000/src/main.html` instead. Move with W/A/S/D, press E near an NPC to talk, M for the memory panel. Art credits and the asset pack layout are in `assets/PACK_README.txt`.
 
 ## Running tests
 

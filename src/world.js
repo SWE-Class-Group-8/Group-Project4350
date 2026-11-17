@@ -6,7 +6,7 @@
     }
 })(typeof self !== 'undefined' ? self : this, function () {
     const WIDTH = 640;
-    const HEIGHT = 400;
+    const HEIGHT = 384;
     const PLAYER_SIZE = 32;
     const INTERACT_RADIUS = 56;
 

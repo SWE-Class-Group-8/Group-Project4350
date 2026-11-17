@@ -35,11 +35,18 @@ test('NPC memory is separate per player and per NPC', async () => {
     await api.register('a', 'pw');
     await api.register('b', 'pw');
     const first = await api.talk('a', 'chef_mario', 'I love pizza');
-    assert.deepStrictEqual([first.emotion, first.provider], ['neutral', 'mock']);
+    assert.deepStrictEqual([first.emotion, first.provider], ['happy', 'mock']);
     assert.match((await api.talk('a', 'chef_mario', 'What is my favorite hobby?')).reply, /pizza/);
     assert.match((await api.talk('b', 'chef_mario', 'What is my favorite hobby?')).reply, /haven't told me/);
     assert.match((await api.talk('a', 'cashier_bruce', 'What is my favorite hobby?')).reply, /haven't told me/);
     const mems = await api.memories('a');
     assert.strictEqual(mems[0].npcName, 'Chef Mario');
     assert.ok(mems[0].relationship);
+});
+
+test('mock NPC gets angry when insulted', async () => {
+    const api = createMockApi(memoryStorage());
+    api.register('a', 'pw');
+    const res = await api.talk('a', 'chef_mario', 'your food is terrible');
+    assert.strictEqual(res.emotion, 'angry');
 });

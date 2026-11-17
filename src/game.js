@@ -3,7 +3,7 @@
     const params = new URLSearchParams(window.location.search);
     const api = params.get('mock') === '1'
         ? createMockApi(window.localStorage)
-        : createHttpApi({ baseUrl: window.API_BASE_URL || 'http://localhost:3000', storage: window.localStorage });
+        : createHttpApi({ baseUrl: window.API_BASE_URL || (window.location.port === '3000' ? window.location.origin : 'http://localhost:3000'), storage: window.localStorage });
     let toastTimer = null;
     function toast(msg) {
         const el = document.getElementById('toast');
@@ -14,8 +14,9 @@
     }
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    canvas.width = WIDTH;
-    canvas.height = HEIGHT;
+    canvas.width = WIDTH / 2;
+    canvas.height = HEIGHT / 2;
+    ctx.imageSmoothingEnabled = false;
 
     const screens = ['menu', 'auth', 'world', 'settings'];
     const $ = (id) => document.getElementById(id);
@@ -31,9 +32,9 @@
 
     function setAuthMode(mode) {
         authMode = mode;
-        $('auth-title').textContent = mode === 'login' ? 'Log In' : 'Register';
-        $('auth-submit').textContent = mode === 'login' ? 'LOG IN' : 'REGISTER';
-        $('auth-toggle').textContent = mode === 'login' ? 'Register new account' : 'Back to log in';
+        $('auth-title').textContent = mode === 'login' ? 'LOGIN' : 'REGISTER';
+        $('auth-submit').className = `imgbtn ${mode === 'login' ? 'b-login' : 'b-register'}`;
+        $('auth-toggle').textContent = mode === 'login' ? 'NO ACCOUNT?' : 'HAVE AN ACCOUNT?';
         $('auth-error').textContent = '';
     }
 
@@ -60,19 +61,20 @@
             user = await fn($('username').value, $('password').value);
             $('hud-user').textContent = user.username;
             show('world');
-            draw();
+            startLoop();
         } catch (err) {
             $('auth-error').textContent = err.message;
         }
     };
 
-    $('btn-logout').onclick = () => { api.logout(); user = null; closeDialogue(); show('menu'); };
+    $('btn-logout').onclick = () => { api.logout(); user = null; closeDialogue(); stopLoop(); show('menu'); };
 
     function openDialogue(npc) {
         talkingTo = npc;
-        $('dialogue-name').textContent = `${npc.name} (${npc.role})`;
+        $('dialogue-name').textContent = npc.name.toUpperCase();
+        setPortrait(npc.id, World.getEmotion(npc.id));
         $('dialogue-log').innerHTML = '';
-        addLine(npc.name, 'Hi there. What can I get you?');
+        addLine(npc.name, 'Hi there. What can I get you?', true);
         $('dialogue').classList.remove('hidden');
         $('dialogue-input').focus();
     }
@@ -82,8 +84,13 @@
         $('dialogue').classList.add('hidden');
     }
 
-    function addLine(who, text) {
+    function setPortrait(npcId, emotion) {
+        $('dialogue-portrait').src = `../assets/portraits/${npcId}/${emotion}.png`;
+    }
+
+    function addLine(who, text, isNpc) {
         const p = document.createElement('p');
+        if (isNpc) p.className = 'npc';
         p.textContent = `${who}: ${text}`;
         $('dialogue-log').appendChild(p);
         $('dialogue-log').scrollTop = $('dialogue-log').scrollHeight;
@@ -102,7 +109,9 @@
         $('thinking').classList.remove('hidden');
         try {
             const res = await api.talk(user.username, npc.id, text);
-            addLine(npc.name, res.reply);
+            const emotion = World.setEmotion(npc.id, res.emotion);
+            setPortrait(npc.id, emotion);
+            addLine(npc.name, res.reply, true);
         } catch (err) {
             toast(err.message);
         } finally {
@@ -153,30 +162,51 @@
             Sprites.recordMove(key, moved !== position);
             position = moved;
         }
-        draw();
     });
 
-    function draw() {
-        Sprites.drawTiles(ctx, Sprites.images, GameMap.TILES, GameMap.TILE);
-        ctx.fillStyle = '#fff';
-        ctx.font = '12px monospace';
-        ctx.fillText('KITCHEN', 20, 20);
-        ctx.fillText('COUNTER', 560, 20);
+    document.addEventListener('keyup', () => { Sprites.player.moving = false; });
 
-        NPCS.forEach((npc) => {
-            Sprites.drawCharacter(ctx, Sprites.images, npc.id, npc.x, npc.y, npc.color);
-            Sprites.drawEmotion(ctx, npc.x, npc.y - 12, World.getEmotion(npc.id));
-            ctx.fillStyle = '#222';
-            ctx.fillText(npc.name, npc.x - 16, npc.y - 6);
-        });
-        const p = Sprites.player;
-        Sprites.drawCharacter(ctx, Sprites.images, 'player', position.x, position.y, '#4ecdc4', p.facing, p.steps, p.moving);
+    let raf = null;
+
+    function draw(now) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(0.5, 0.5);
+        Scene.drawBackground(ctx, Sprites.images);
 
         const near = nearestNpc(position);
+        const blink = Math.floor(now / 350) % 2;
+        const talkFrame = Math.floor(now / 160) % 2;
+        const chars = NPCS.map((npc) => ({
+            y: npc.y,
+            draw: () => {
+                const talking = talkingTo && talkingTo.id === npc.id;
+                Sprites.drawCharacter(ctx, Sprites.images, npc.id, npc.x, npc.y, { talkFrame: talking ? talkFrame : undefined });
+                Sprites.drawEmotion(ctx, Sprites.images, npc.x, npc.y, World.getEmotion(npc.id));
+                if (near && near.id === npc.id && !talkingTo) {
+                    const key = `world/interaction_highlights/press_e_key_${blink ? 'down' : 'up'}`;
+                    Sprites.drawImage(ctx, Sprites.images, key, npc.x, npc.y - 58);
+                }
+            },
+        }));
+        const p = Sprites.player;
+        chars.push({
+            y: position.y,
+            draw: () => Sprites.drawCharacter(ctx, Sprites.images, 'player', position.x, position.y, { direction: p.facing, steps: p.steps, moving: p.moving }),
+        });
+        Scene.drawDepthSorted(ctx, Sprites.images, chars);
+
         $('prompt').classList.toggle('hidden', !near || !!talkingTo);
-        if (near) $('prompt').textContent = `Press E to talk to ${near.name}`;
+        if (near) $('prompt').textContent = `E: TALK TO ${near.name.toUpperCase()}`;
     }
 
-    Sprites.init().then(draw);
+    function frame(now) {
+        draw(now);
+        raf = requestAnimationFrame(frame);
+    }
+    function startLoop() { if (!raf) raf = requestAnimationFrame(frame); }
+    function stopLoop() { cancelAnimationFrame(raf); raf = null; }
+
+    Sprites.init();
     show('menu');
 })();

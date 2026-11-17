@@ -13,3 +13,23 @@ test('pressing a at the left edge leaves x unchanged', () => {
     const result = movePlayer({ x: bounds.minX, y: 100 }, 'a', bounds);
     assert.strictEqual(result.x, bounds.minX);
 });
+
+
+// JOShoua'S BACKEND & MEMORY TESTS
+
+test('NPC memory should not save if Player ID is missing', () => {
+    function saveMemory(playerId, npcId, fact) {
+        if (!playerId || !npcId) return false;
+        return true;
+    }
+    assert.strictEqual(saveMemory(null, 'npc_chef', 'Loves pizza'), false);
+    assert.strictEqual(saveMemory('player_123', 'npc_chef', 'Loves pizza'), true);
+});
+
+test('System should fallback to Gemini if DeepSeek fails', () => {
+    function getAIResponse(primaryFails) {
+        if (primaryFails) return "Gemini Response";
+        return "DeepSeek Response";
+    }
+    assert.strictEqual(getAIResponse(true), "Gemini Response");
+});

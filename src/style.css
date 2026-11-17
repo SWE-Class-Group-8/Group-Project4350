@@ -2,7 +2,7 @@
 @font-face { font-family: 'VT323'; src: url('../assets/ui/fonts/VT323-Regular.ttf'); }
 * { image-rendering: pixelated; box-sizing: border-box; }
 html, body { height: 100%; overflow: hidden; }
-#app { position: absolute; left: 50%; top: 0; width: 960px; height: 650px; margin-left: -480px; transform-origin: top center; }
+#app { position: absolute; left: 50%; top: 0; width: 960px; height: 610px; margin-left: -480px; transform-origin: top center; }
 body { background: #1c2140; color: #dde3f5; font-family: 'VT323', monospace; font-size: 24px; margin: 0; padding: 0; text-align: center; cursor: url(../assets/ui/cursor/cursor_arrow.png) 0 0, default; }
 button, .imgbtn { cursor: url(../assets/ui/cursor/cursor_hand.png) 0 0, pointer; }
 .hidden { display: none !important; }
@@ -34,13 +34,13 @@ button, .imgbtn { cursor: url(../assets/ui/cursor/cursor_hand.png) 0 0, pointer;
 #hud { width: 960px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 #hud .tag { font: 12px 'Press Start 2P', monospace; background: #2b3252; padding: 10px 14px; border: 3px solid #b78cff; }
 #hud .imgbtn { position: static; width: 160px; height: 44px; }
-#viewport { position: relative; width: 960px; height: 576px; }
-#game { display: block; width: 960px; height: 576px; background: #2a2638; }
+#viewport { position: relative; width: 960px; height: 540px; }
+#game { display: block; width: 960px; height: 540px; background: #2a2638; }
 #prompt { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font: 12px 'Press Start 2P', monospace; background: #1c2140; border: 3px solid #3dffb4; padding: 8px 12px; }
-#thinking { position: absolute; right: 24px; bottom: 276px; width: 78px; height: 48px; background: url(../assets/ui/hud/thinking_0.png) 0 0/100% 100%; animation: think 0.9s steps(1) infinite; }
+#thinking { position: absolute; right: 24px; bottom: 260px; width: 78px; height: 48px; background: url(../assets/ui/hud/thinking_0.png) 0 0/100% 100%; animation: think 0.9s steps(1) infinite; }
 @keyframes think { 0% { background-image: url(../assets/ui/hud/thinking_0.png); } 33% { background-image: url(../assets/ui/hud/thinking_1.png); } 66% { background-image: url(../assets/ui/hud/thinking_2.png); } }
 #toast { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); width: 528px; height: 72px; background: url(../assets/ui/hud/error_toast.png) 0 0/100% 100%; font-size: 24px; color: #fff; padding: 12px 20px 0; text-align: center; }
-#dialogue { position: absolute; left: 24px; right: 24px; bottom: 12px; height: 252px; padding: 12px; display: flex; gap: 16px; }
+#dialogue { position: absolute; left: 24px; right: 24px; bottom: 12px; height: 236px; padding: 12px; display: flex; gap: 16px; }
 #dialogue .side { width: 132px; text-align: center; }
 #dialogue-portrait { width: 128px; height: 160px; display: block; }
 #dialogue-name { font: 10px 'Press Start 2P', monospace; margin-top: 8px; color: #3dffb4; }

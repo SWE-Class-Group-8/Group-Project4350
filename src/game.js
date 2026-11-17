@@ -1,5 +1,5 @@
 (function () {
-    const { WIDTH, HEIGHT, PLAYER_SIZE, NPCS, BOUNDS, nearestNpc } = World;
+    const { WIDTH, HEIGHT, VIEW_W, VIEW_H, NPCS, BOUNDS, nearestNpc } = World;
     const params = new URLSearchParams(window.location.search);
     const api = params.get('mock') === '1'
         ? createMockApi(window.localStorage)
@@ -14,15 +14,15 @@
     }
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
-    canvas.width = WIDTH / 2;
-    canvas.height = HEIGHT / 2;
+    canvas.width = VIEW_W / 2;
+    canvas.height = VIEW_H / 2;
     ctx.imageSmoothingEnabled = false;
 
     const screens = ['menu', 'auth', 'world', 'settings'];
     const $ = (id) => document.getElementById(id);
     const settings = { volume: 5, textSpeed: 5, fullscreen: false };
     let user = null;
-    let position = { x: 300, y: 180 };
+    let position = { x: 450, y: 300 };
     let talkingTo = null;
     let authMode = 'login';
 
@@ -172,6 +172,9 @@
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.scale(0.5, 0.5);
+        const camX = Math.round(Math.min(Math.max(position.x + 16 - VIEW_W / 2, 0), WIDTH - VIEW_W));
+        const camY = Math.round(Math.min(Math.max(position.y + 16 - VIEW_H / 2, 0), HEIGHT - VIEW_H));
+        ctx.translate(-camX, -camY);
         Scene.drawBackground(ctx, Sprites.images);
 
         const near = nearestNpc(position);
@@ -208,10 +211,10 @@
     function stopLoop() { cancelAnimationFrame(raf); raf = null; }
 
     function fit() {
-        const scale = Math.min(window.innerWidth / 960, window.innerHeight / 650);
+        const scale = Math.min(window.innerWidth / 960, window.innerHeight / 610);
         const app = $('app');
         app.style.transform = `scale(${scale})`;
-        app.style.top = `${Math.max(0, (window.innerHeight - 650 * scale) / 2)}px`;
+        app.style.top = `${Math.max(0, (window.innerHeight - 610 * scale) / 2)}px`;
     }
     document.addEventListener('keydown', (e) => {
         if (e.key === 'F11' || (e.key.toLowerCase() === 'f' && e.target.tagName !== 'INPUT' && !user)) {

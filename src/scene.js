@@ -5,10 +5,10 @@
         root.Scene = factory();
     }
 })(typeof self !== 'undefined' ? self : this, function () {
-    // Coordinates here are in native art pixels (16px tiles, 20x12 tiles = 320x192).
+    // Coordinates here are in native art pixels (16px tiles, 28x16 tiles = 448x256).
     // Collision still comes from map.js, so keep furniture lined up with its blocking tiles.
-    const COLS = 20;
-    const ROWS = 12;
+    const COLS = 28;
+    const ROWS = 16;
     const TILE = 16;
     const SCALE = 2;
     const W = (n) => `world/${n}`;
@@ -18,46 +18,53 @@
         return { img: W(img), x, y, sortY: y + h };
     }
 
+    const TABLES = [[4, 6], [10, 6], [16, 6], [4, 11], [10, 11], [16, 11], [22, 8], [22, 12]];
+    const TABLE_FOOD = { '4,6': 'food/coffee', '10,6': 'food/pizza_whole', '22,8': 'food/burger', '10,11': 'food/plate' };
+
     const OBJECTS = [
         obj('kitchen/fridge', 0, 0, 32),
         obj('kitchen/stove', 16, 8, 24),
         obj('kitchen/counter_left', 32, 8, 24),
         obj('kitchen/sink', 48, 8, 24),
         obj('kitchen/prep_table', 64, 8, 24),
-        obj('kitchen/counter_mid', 192, 8, 24),
-        obj('kitchen/counter_mid', 208, 8, 24),
-        obj('front_of_house/cashier_counter', 224, 8, 24),
-        obj('kitchen/counter_mid', 272, 8, 24),
+        obj('kitchen/counter_mid', 96, 8, 24),
+        obj('kitchen/counter_right', 112, 8, 24),
         obj('kitchen/counter_mid', 288, 8, 24),
-        obj('kitchen/counter_right', 304, 8, 24),
-        obj('front_of_house/register', 240, -4, 16),
-        obj('front_of_house/table_rect_4seat', 64, 116, 24),
-        obj('front_of_house/table_rect_4seat', 128, 116, 24),
-        obj('front_of_house/table_rect_4seat', 192, 100, 24),
-        obj('front_of_house/chair_down', 74, 104, 16),
-        obj('front_of_house/chair_down', 138, 104, 16),
-        obj('front_of_house/chair_down', 202, 88, 16),
-        obj('front_of_house/chair_right', 50, 120, 16),
-        obj('front_of_house/chair_right', 114, 120, 16),
-        obj('front_of_house/chair_right', 178, 104, 16),
-        obj('front_of_house/chair_left', 98, 120, 16),
-        obj('front_of_house/chair_left', 162, 120, 16),
-        obj('front_of_house/chair_left', 226, 104, 16),
-        obj('food/coffee', 72, 108, 16),
-        obj('food/pizza_whole', 140, 108, 16),
-        obj('food/burger', 200, 92, 16),
-        obj('front_of_house/plant_large', 300, 150, 32),
-        obj('front_of_house/plant_small', 4, 160, 16),
-        obj('front_of_house/booth', 4, 124, 28),
+        obj('kitchen/counter_mid', 304, 8, 24),
+        obj('front_of_house/cashier_counter', 320, 8, 24),
+        obj('kitchen/counter_mid', 368, 8, 24),
+        obj('kitchen/counter_mid', 384, 8, 24),
+        obj('kitchen/counter_mid', 400, 8, 24),
+        obj('kitchen/counter_mid', 416, 8, 24),
+        obj('kitchen/counter_right', 432, 8, 24),
+        obj('front_of_house/register', 336, -4, 16),
+        obj('front_of_house/plant_large', 428, 208, 32),
+        obj('front_of_house/plant_small', 8, 232, 16),
+        obj('front_of_house/plant_large', 4, 28, 32),
+        obj('front_of_house/booth', 8, 150, 28),
+        obj('front_of_house/booth', 8, 180, 28),
     ];
+
+    TABLES.forEach(([c, r]) => {
+        const x = c * 16;
+        const y = r * 16 + 4;
+        OBJECTS.push(obj('front_of_house/table_rect_4seat', x, y, 24));
+        OBJECTS.push(obj('front_of_house/chair_down', x + 10, y - 16, 16));
+        OBJECTS.push(obj('front_of_house/chair_right', x - 14, y + 4, 16));
+        OBJECTS.push(obj('front_of_house/chair_left', x + 34, y + 4, 16));
+        const food = TABLE_FOOD[`${c},${r}`];
+        if (food) OBJECTS.push(obj(food, x + 8, y - 12, 16));
+    });
 
     const WALL_DECOR = [
-        { img: W('decor/poster_pizza'), x: 98, y: 6 },
-        { img: W('front_of_house/menu_board'), x: 116, y: 2 },
-        { img: W('tiles/door_closed'), x: 170, y: 0 },
+        { img: W('decor/poster_pizza'), x: 140, y: 6 },
+        { img: W('front_of_house/menu_board'), x: 160, y: 2 },
+        { img: W('tiles/door_closed'), x: 216, y: 0 },
+        { img: W('decor/poster_coffee'), x: 246, y: 6 },
+        { img: W('decor/poster_star'), x: 264, y: 6 },
     ];
 
-    const RUG = { img: W('tiles/rug_48x32'), x: 136, y: 56 };
+    const RUG = { img: W('tiles/rug_48x32'), x: 176, y: 140 };
 
     function floorImage(col, row) {
         if (row === 0) return W('tiles/wall_face');

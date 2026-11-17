@@ -24,6 +24,11 @@
     let user = null;
     let position = { x: 450, y: 300 };
     let talkingTo = null;
+    const held = new Set();
+    const SPEED = 130;
+    let travel = 0;
+    let last = 0;
+    const MOVE_KEYS = { w: [0, -1], arrowup: [0, -1], s: [0, 1], arrowdown: [0, 1], a: [-1, 0], arrowleft: [-1, 0], d: [1, 0], arrowright: [1, 0] };
     let authMode = 'login';
 
     function show(name) {
@@ -157,16 +162,40 @@
             toggleMemory();
         } else if (key === 'escape') {
             closeDialogue();
-        } else if (!talkingTo) {
-            const moved = moveWithCollision(position, key, BOUNDS);
-            Sprites.recordMove(key, moved !== position);
-            position = moved;
+        } else if (MOVE_KEYS[key]) {
+            e.preventDefault();
+            held.add(key);
         }
     });
 
-    document.addEventListener('keyup', () => { Sprites.player.moving = false; });
+    document.addEventListener('keyup', (e) => held.delete(e.key.toLowerCase()));
+    window.addEventListener('blur', () => held.clear());
+
+    function updatePlayer(dt) {
+        let dx = 0;
+        let dy = 0;
+        if (!talkingTo) {
+            held.forEach((k) => { dx += MOVE_KEYS[k][0]; dy += MOVE_KEYS[k][1]; });
+        }
+        const p = Sprites.player;
+        if (!dx && !dy) { p.moving = false; return; }
+        const len = Math.hypot(dx, dy);
+        const before = position;
+        position = stepMove(position, (dx / len) * SPEED * dt, (dy / len) * SPEED * dt, BOUNDS);
+        const travelled = Math.hypot(position.x - before.x, position.y - before.y);
+        p.facing = directionFromVector(dx, dy, p.facing);
+        p.moving = travelled > 0;
+        if (p.moving) { travel += travelled; p.steps = Math.floor(travel / 14); }
+    }
 
     let raf = null;
+
+    function facingPlayer(npc) {
+        const dx = position.x - npc.x;
+        const dy = position.y - npc.y;
+        if (Math.hypot(dx, dy) > 110) return 'down';
+        return Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down');
+    }
 
     function draw(now) {
         ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -184,7 +213,7 @@
             y: npc.y,
             draw: () => {
                 const talking = talkingTo && talkingTo.id === npc.id;
-                Sprites.drawCharacter(ctx, Sprites.images, npc.id, npc.x, npc.y, { talkFrame: talking ? talkFrame : undefined });
+                Sprites.drawCharacter(ctx, Sprites.images, npc.id, npc.x, npc.y, { talkFrame: talking ? talkFrame : undefined, direction: facingPlayer(npc) });
                 Sprites.drawEmotion(ctx, Sprites.images, npc.x, npc.y, World.getEmotion(npc.id));
                 if (near && near.id === npc.id && !talkingTo) {
                     const key = `world/interaction_highlights/press_e_key_${blink ? 'down' : 'up'}`;
@@ -204,11 +233,13 @@
     }
 
     function frame(now) {
+        updatePlayer(Math.min((now - (last || now)) / 1000, 0.05));
+        last = now;
         draw(now);
         raf = requestAnimationFrame(frame);
     }
     function startLoop() { if (!raf) raf = requestAnimationFrame(frame); }
-    function stopLoop() { cancelAnimationFrame(raf); raf = null; }
+    function stopLoop() { cancelAnimationFrame(raf); raf = null; last = 0; held.clear(); }
 
     function fit() {
         const scale = Math.min(window.innerWidth / 960, window.innerHeight / 610);

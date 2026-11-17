@@ -45,3 +45,29 @@ test('NPCs and player start are not inside blocked tiles', () => {
     NPCS.forEach((n) => assert.strictEqual(isBlocked(n.x, n.y, 32), false, n.id));
     assert.ok(TILES.length > 0);
 });
+
+const { stepMove, directionFromVector } = require('../src/movement.js');
+
+test('stepMove moves smoothly by a fractional delta', () => {
+    const p = stepMove({ x: 450, y: 300 }, 2.5, 0, bounds);
+    assert.deepStrictEqual(p, { x: 452.5, y: 300 });
+});
+
+test('stepMove slides along a wall instead of stopping', () => {
+    const p = stepMove({ x: 450, y: 70 }, 3, -5, bounds);
+    assert.strictEqual(p.x, 453);
+    assert.ok(p.y >= 60 - 0.0001 && p.y <= 70);
+});
+
+test('stepMove is blocked by a table and clamped to the world', () => {
+    const blocked = stepMove({ x: 90, y: 200 }, 20, 0, bounds);
+    assert.ok(blocked.x + 28 <= 4 * 32 + 0.0001, `x was ${blocked.x}`);
+    assert.strictEqual(stepMove({ x: 2, y: 300 }, -10, 0, bounds).x, 0);
+});
+
+test('directionFromVector picks facing and keeps previous when still', () => {
+    assert.strictEqual(directionFromVector(-1, 0), 'left');
+    assert.strictEqual(directionFromVector(0, -1), 'up');
+    assert.strictEqual(directionFromVector(1, 1), 'right');
+    assert.strictEqual(directionFromVector(0, 0, 'up'), 'up');
+});

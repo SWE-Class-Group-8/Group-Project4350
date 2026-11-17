@@ -5,6 +5,8 @@
         const m = factory();
         root.movePlayer = m.movePlayer;
         root.moveWithCollision = m.moveWithCollision;
+        root.stepMove = m.stepMove;
+        root.directionFromVector = m.directionFromVector;
     }
 })(typeof self !== 'undefined' ? self : this, function () {
     const STEP = 10;
@@ -39,5 +41,25 @@
         return next;
     }
 
-    return { movePlayer, moveWithCollision };
+    // Smooth movement: apply a velocity-based delta one axis at a time so the player slides along walls.
+    function stepMove(position, dx, dy, bounds, size = 32, isBlocked = defaultBlocked()) {
+        const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+        let { x, y } = position;
+        const nx = clamp(x + dx, bounds.minX, bounds.maxX);
+        if (!isBlocked(nx + HIT_INSET, y + HIT_INSET, size - 2 * HIT_INSET)) x = nx;
+        const ny = clamp(y + dy, bounds.minY, bounds.maxY);
+        if (!isBlocked(x + HIT_INSET, ny + HIT_INSET, size - 2 * HIT_INSET)) y = ny;
+        return { x, y };
+    }
+
+    // Facing from a movement vector; horizontal wins on diagonals. Returns previous when standing still.
+    function directionFromVector(dx, dy, previous = 'down') {
+        if (dx < 0) return 'left';
+        if (dx > 0) return 'right';
+        if (dy < 0) return 'up';
+        if (dy > 0) return 'down';
+        return previous;
+    }
+
+    return { movePlayer, moveWithCollision, stepMove, directionFromVector };
 });

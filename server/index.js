@@ -1,5 +1,6 @@
 const { createApp } = require('./app');
 const { createPool } = require('./db');
+const { createLlmClientFromEnv } = require('./llm');
 
 if (!process.env.JWT_SECRET) {
   console.error('JWT_SECRET is required');
@@ -7,6 +8,6 @@ if (!process.env.JWT_SECRET) {
 }
 
 const port = Number(process.env.PORT) || 3000;
-createApp({ pool: createPool() }).listen(port, () => {
+createApp({ pool: createPool(), llm: createLlmClientFromEnv() }).listen(port, () => {
   console.log(`Agent Appetite server listening on ${port}`);
 });

@@ -5,46 +5,69 @@
         root.Sprites = factory();
     }
 })(typeof self !== 'undefined' ? self : this, function () {
-    // Spritesheet format (see assets/README.md):
-    //   characters: 32x32 frames; rows = down, left, right, up; column 0 = idle, columns 1..3 = walk.
-    //   tiles: one row of 32x32 tiles: floor, wall, counter, table, kitchen.
-    const FRAME = 32;
+    // Art pack layout (see assets/PACK_README.txt): every sprite is its own PNG, drawn at 16px-per-tile
+    // native size. The world is laid out in 2x logical units, so images are drawn at SCALE.
+    const SCALE = 2;
+    const CHAR_W = 16;
+    const CHAR_H = 25;
+    const BOX = 32;
     const DIRECTIONS = ['down', 'left', 'right', 'up'];
-    const WALK_COLUMNS = 4;
-    const NAMES = ['player', 'chef_mario', 'cashier_bruce', 'customer_matthew', 'tiles'];
-    const BASE_PATH = 'assets/sprites/';
+    const WALK_FRAMES = 4;
+    const NPC_IDS = ['chef_mario', 'cashier_bruce', 'customer_matthew', 'waiter_leo'];
+    const CHARACTER_IDS = ['player'].concat(NPC_IDS);
+    const EMOTIONS = ['neutral', 'happy', 'sad', 'angry', 'annoyed'];
+    const BASE_PATH = '../assets/';
     const KEY_DIRECTION = { w: 'up', s: 'down', a: 'left', d: 'right' };
-    const EMOTION_STYLE = {
-        neutral: { color: '#cccccc', icon: '...' },
-        happy: { color: '#4cd964', icon: ':)' },
-        sad: { color: '#5ac8fa', icon: ':(' },
-        angry: { color: '#ff3b30', icon: '>:(' },
-        annoyed: { color: '#ff9500', icon: '-_-' },
-    };
+    const EMOTION_ICON = { happy: 'heart', angry: 'anger', sad: 'sweat', annoyed: 'alert', neutral: null };
+    const ICONS = ['heart', 'anger', 'sweat', 'alert', 'ellipsis'];
+
+    const WORLD_IMAGES = [
+        'tiles/floor_checker_a', 'tiles/floor_checker_b', 'tiles/wall_face', 'tiles/wall_top', 'tiles/window',
+        'tiles/door_closed', 'tiles/rug_48x32',
+        'kitchen/counter_left', 'kitchen/counter_mid', 'kitchen/counter_right', 'kitchen/stove', 'kitchen/fridge',
+        'kitchen/prep_table', 'kitchen/sink',
+        'front_of_house/cashier_counter', 'front_of_house/register', 'front_of_house/table_rect_4seat',
+        'front_of_house/table_round_2seat', 'front_of_house/chair_down', 'front_of_house/chair_left',
+        'front_of_house/chair_right', 'front_of_house/chair_up', 'front_of_house/booth', 'front_of_house/menu_board',
+        'front_of_house/plant_large', 'front_of_house/plant_small',
+        'decor/wall_clock', 'decor/poster_pizza', 'decor/poster_coffee', 'decor/poster_star', 'decor/open_sign',
+        'food/coffee', 'food/pizza_whole', 'food/burger', 'food/plate',
+        'interaction_highlights/press_e_key_up', 'interaction_highlights/press_e_key_down',
+    ].map((n) => `world/${n}`);
+
+    function frameName(direction, steps, moving) {
+        return moving ? `${direction}_walk_${Math.max(0, steps) % WALK_FRAMES}` : `${direction}_idle`;
+    }
+
+    function characterImageName(id, direction, steps, moving, talkFrame) {
+        const frame = talkFrame === 0 || talkFrame === 1 ? `talk_${talkFrame}` : frameName(direction, steps, moving);
+        return `characters/${id}/${frame}`;
+    }
+
+    function allAssetNames() {
+        const names = [];
+        CHARACTER_IDS.forEach((id) => {
+            DIRECTIONS.forEach((d) => {
+                names.push(`characters/${id}/${d}_idle`);
+                for (let i = 0; i < WALK_FRAMES; i++) names.push(`characters/${id}/${d}_walk_${i}`);
+            });
+            if (id !== 'player') names.push(`characters/${id}/talk_0`, `characters/${id}/talk_1`);
+            EMOTIONS.forEach((e) => names.push(`portraits/${id}/${e}`));
+        });
+        ICONS.forEach((i) => names.push(`emotion_indicators/${i}`));
+        return names.concat(WORLD_IMAGES);
+    }
 
     function directionFromKey(key, previous = 'down') {
         return KEY_DIRECTION[key] || previous;
     }
 
-    function directionRow(direction) {
-        const i = DIRECTIONS.indexOf(direction);
-        return i < 0 ? 0 : i;
+    function emotionIcon(emotion) {
+        return EMOTION_ICON[emotion] || null;
     }
 
-    // Column 0 when standing; otherwise cycle columns 1..columns-1 by step count.
-    function walkFrame(steps, moving, columns = WALK_COLUMNS) {
-        if (!moving) return 0;
-        return 1 + (Math.max(0, steps) % (columns - 1));
-    }
-
-    // Source rectangle in the sheet for a character frame.
-    function frameRect(direction, steps, moving) {
-        return { sx: walkFrame(steps, moving) * FRAME, sy: directionRow(direction) * FRAME, sw: FRAME, sh: FRAME };
-    }
-
-    // loadImage(src) -> Promise<image>; rejects when the file is missing.
-    // Resolves to { name: image | null } so callers fall back to placeholders for nulls.
-    function loadSprites(loadImage, names = NAMES, base = BASE_PATH) {
+    // loadImage(src) -> Promise<image>; a missing file resolves to null so callers skip it.
+    function loadSprites(loadImage, names = allAssetNames(), base = BASE_PATH) {
         return Promise.all(names.map((name) =>
             Promise.resolve().then(() => loadImage(`${base}${name}.png`)).then((img) => img || null, () => null)
         )).then((images) => {
@@ -63,55 +86,23 @@
         });
     }
 
-    // ---- drawing (browser only; ctx is a CanvasRenderingContext2D) ----
-    const TILE_COLORS = ['#c9a87a', '#5b3a24', '#8b5e3c', '#a0522d', '#9aa5b1'];
-
-    function drawTiles(ctx, images, tiles, tileSize) {
-        tiles.forEach((row, r) => row.forEach((t, c) => {
-            if (images.tiles) {
-                ctx.drawImage(images.tiles, t * FRAME, 0, FRAME, FRAME, c * tileSize, r * tileSize, tileSize, tileSize);
-            } else {
-                ctx.fillStyle = TILE_COLORS[t] || TILE_COLORS[0];
-                ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
-            }
-        }));
-    }
-
-    function drawPlaceholderPerson(ctx, x, y, color) {
-        ctx.fillStyle = '#00000044';
-        ctx.fillRect(x + 4, y + FRAME - 4, FRAME - 8, 4);
-        ctx.fillStyle = color;
-        ctx.fillRect(x + 6, y + 12, FRAME - 12, FRAME - 16);
-        ctx.fillStyle = '#ffd7b5';
-        ctx.fillRect(x + 8, y, FRAME - 16, 14);
-        ctx.fillStyle = '#222';
-        ctx.fillRect(x + 11, y + 5, 3, 3);
-        ctx.fillRect(x + FRAME - 14, y + 5, 3, 3);
-    }
-
-    function drawCharacter(ctx, images, name, x, y, color, direction = 'down', steps = 0, moving = false) {
+    // ---- drawing (browser only). ctx is already scaled so 1 unit = 1 logical world pixel. ----
+    function drawImage(ctx, images, name, x, y) {
         const img = images[name];
-        if (img) {
-            const r = frameRect(direction, steps, moving);
-            ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, x, y, FRAME, FRAME);
-        } else {
-            drawPlaceholderPerson(ctx, x, y, color);
-        }
+        if (img) ctx.drawImage(img, Math.round(x), Math.round(y), img.width * SCALE, img.height * SCALE);
     }
 
-    function drawEmotion(ctx, x, y, emotion) {
-        const style = EMOTION_STYLE[emotion] || EMOTION_STYLE.neutral;
-        const cx = x + FRAME / 2;
-        const cy = y - 22;
-        ctx.fillStyle = style.color;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 11, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#222';
-        ctx.font = 'bold 10px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(style.icon, cx, cy + 3);
-        ctx.textAlign = 'start';
+    // Characters stand on the bottom of their 32px logical box.
+    function drawCharacter(ctx, images, id, x, y, opts = {}) {
+        const name = characterImageName(id, opts.direction || 'down', opts.steps || 0, !!opts.moving, opts.talkFrame);
+        drawImage(ctx, images, name, x + (BOX - CHAR_W * SCALE) / 2, y + BOX - CHAR_H * SCALE);
+    }
+
+    function drawEmotion(ctx, images, x, y, emotion) {
+        const icon = emotionIcon(emotion);
+        if (!icon) return;
+        const img = images[`emotion_indicators/${icon}`];
+        if (img) drawImage(ctx, images, `emotion_indicators/${icon}`, x + (BOX - img.width * SCALE) / 2, y + BOX - CHAR_H * SCALE - img.height * SCALE - 2);
     }
 
     // Player facing/step state, updated from key presses.
@@ -130,8 +121,8 @@
     }
 
     return {
-        FRAME, DIRECTIONS, NAMES, EMOTION_STYLE, images, player,
-        directionFromKey, directionRow, walkFrame, frameRect, loadSprites, browserLoadImage,
-        drawTiles, drawCharacter, drawEmotion, recordMove, init,
+        SCALE, CHAR_W, CHAR_H, BOX, DIRECTIONS, EMOTIONS, NPC_IDS, CHARACTER_IDS, WORLD_IMAGES, images, player,
+        frameName, characterImageName, allAssetNames, directionFromKey, emotionIcon, loadSprites, browserLoadImage,
+        drawImage, drawCharacter, drawEmotion, recordMove, init,
     };
 });

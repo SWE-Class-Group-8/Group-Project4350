@@ -5,15 +5,17 @@
         root.World = factory();
     }
 })(typeof self !== 'undefined' ? self : this, function () {
-    const WIDTH = 640;
-    const HEIGHT = 400;
+    const WIDTH = 896;
+    const HEIGHT = 512;
+    const VIEW_W = 640;
+    const VIEW_H = 360;
     const PLAYER_SIZE = 32;
     const INTERACT_RADIUS = 56;
 
     const NPCS = [
-        { id: 'chef_mario', name: 'Chef Mario', role: 'Chef', color: '#e4572e', x: 90, y: 70 },
-        { id: 'cashier_bruce', name: 'Cashier Bruce', role: 'Cashier', color: '#4361ee', x: 520, y: 70 },
-        { id: 'customer_matthew', name: 'Customer Matthew P', role: 'Customer', color: '#f2b134', x: 300, y: 290 },
+        { id: 'chef_mario', name: 'Chef Mario', role: 'Chef', color: '#e4572e', x: 96, y: 80 },
+        { id: 'cashier_bruce', name: 'Cashier Bruce', role: 'Cashier', color: '#4361ee', x: 740, y: 80 },
+        { id: 'customer_matthew', name: 'Customer Matthew P', role: 'Customer', color: '#f2b134', x: 400, y: 360 },
     ];
 
     const BOUNDS = { minX: 0, maxX: WIDTH - PLAYER_SIZE, minY: 0, maxY: HEIGHT - PLAYER_SIZE };
@@ -48,5 +50,5 @@
         return st.emotions[npcId];
     }
 
-    return { EMOTIONS, state, getEmotion, setEmotion, WIDTH, HEIGHT, PLAYER_SIZE, INTERACT_RADIUS, NPCS, BOUNDS, distance, nearestNpc };
+    return { EMOTIONS, state, getEmotion, setEmotion, WIDTH, HEIGHT, VIEW_W, VIEW_H, PLAYER_SIZE, INTERACT_RADIUS, NPCS, BOUNDS, distance, nearestNpc };
 });

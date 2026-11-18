@@ -1,0 +1,94 @@
+@font-face { font-family: 'Press Start 2P'; src: url('../assets/ui/fonts/PressStart2P-Regular.ttf'); }
+@font-face { font-family: 'VT323'; src: url('../assets/ui/fonts/VT323-Regular.ttf'); }
+* { image-rendering: pixelated; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; }
+#app { position: absolute; left: 50%; top: 0; width: 960px; height: 610px; margin-left: -480px; transform-origin: top center; }
+body { background: #1c2140; color: #dde3f5; font-family: 'VT323', monospace; font-size: 24px; margin: 0; padding: 0; text-align: center; cursor: url(../assets/ui/cursor/cursor_arrow.png) 0 0, default; }
+button, .imgbtn { cursor: url(../assets/ui/cursor/cursor_hand.png) 0 0, pointer; }
+.hidden { display: none !important; }
+.stage { position: relative; width: 960px; height: 540px; margin: 0 auto; background: #2a2638 center/100% 100% no-repeat; overflow: hidden; }
+.imgbtn { position: absolute; width: 240px; height: 66px; border: 0; padding: 0; background: transparent center/100% 100% no-repeat; }
+.panel9 { border: 12px solid transparent; border-image: url(../assets/ui/panels/panel_9slice_source_48x48.png) 4 fill / 12px stretch; color: #dde3f5; text-align: left; }
+.pixel { font-family: 'Press Start 2P', monospace; font-size: 12px; color: #fff; }
+
+#menu, #auth, #settings { background-image: url(../assets/ui/logo/main_menu_background.png); }
+#menu .logo { position: absolute; left: 282px; top: 30px; width: 396px; }
+#auth .box { position: absolute; left: 240px; top: 100px; width: 480px; height: 336px; background: url(../assets/ui/panels/login_panel.png) 0 0/100% 100%; }
+#auth .title { position: absolute; left: 6px; top: 6px; right: 6px; height: 42px; background: #b78cff; color: #000; font: 24px 'Press Start 2P', monospace; padding: 10px 12px; text-align: left; }
+#auth .field { position: absolute; left: 33px; width: 414px; height: 52px; border: 0; background: transparent; color: #dde3f5; font: 28px 'VT323', monospace; padding: 0 12px; outline: none; }
+#auth #username { top: 104px; }
+#auth #password { top: 207px; }
+#auth #auth-toggle { position: absolute; left: 30px; top: 264px; height: 36px; width: 420px; background: #2a2638; border: 0; color: #7f7a97; font: 18px 'Press Start 2P', monospace; text-align: left; padding: 0; }
+#auth #auth-toggle:hover { color: #3dffb4; }
+#auth-error { position: absolute; left: 0; right: 0; top: 448px; margin: 0; color: #e08a8f; font-size: 28px; }
+#auth-submit { left: 240px; top: 490px; }
+#auth-back { left: 480px; top: 490px; }
+#settings .box { position: absolute; left: 240px; top: 60px; width: 480px; padding: 24px 28px; }
+#settings h2 { font: 20px 'Press Start 2P', monospace; margin: 0 0 18px; color: #b78cff; }
+#settings label { display: block; margin: 16px 0; font-size: 28px; }
+#settings input[type=range] { width: 100%; accent-color: #3dffb4; }
+#settings-save { left: 240px; top: 440px; }
+#settings-back { left: 480px; top: 440px; }
+
+#world { width: 960px; margin: 0 auto; }
+#hud { width: 960px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+#hud .tag { font: 12px 'Press Start 2P', monospace; background: #2b3252; padding: 10px 14px; border: 3px solid #b78cff; }
+#hud .imgbtn { position: static; width: 160px; height: 44px; }
+#viewport { position: relative; width: 960px; height: 540px; }
+#game { display: block; width: 960px; height: 540px; background: #2a2638; }
+#prompt { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); font: 12px 'Press Start 2P', monospace; background: #1c2140; border: 3px solid #3dffb4; padding: 8px 12px; }
+#thinking { position: absolute; right: 24px; bottom: 260px; width: 78px; height: 48px; background: url(../assets/ui/hud/thinking_0.png) 0 0/100% 100%; animation: think 0.9s steps(1) infinite; }
+@keyframes think { 0% { background-image: url(../assets/ui/hud/thinking_0.png); } 33% { background-image: url(../assets/ui/hud/thinking_1.png); } 66% { background-image: url(../assets/ui/hud/thinking_2.png); } }
+#toast { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); width: 528px; height: 72px; background: url(../assets/ui/hud/error_toast.png) 0 0/100% 100%; font-size: 24px; color: #fff; padding: 12px 20px 0; text-align: center; }
+#dialogue { position: absolute; left: 24px; right: 24px; bottom: 12px; height: 236px; padding: 12px; display: flex; gap: 16px; }
+#dialogue .side { width: 132px; text-align: center; }
+#dialogue-portrait { width: 128px; height: 160px; display: block; }
+#dialogue-name { font: 10px 'Press Start 2P', monospace; margin-top: 8px; color: #3dffb4; }
+#dialogue .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+#dialogue-log { flex: 1; overflow-y: auto; font-size: 26px; line-height: 1.1; }
+#dialogue-log p { margin: 2px 0; }
+#dialogue-log .npc { color: #9affd6; }
+#dialogue-form { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+#dialogue-input { flex: 1; height: 54px; border: 0; background: url(../assets/ui/panels/text_input_normal.png) 0 0/100% 100%; color: #dde3f5; font: 26px 'VT323', monospace; padding: 0 14px; outline: none; }
+#dialogue-input:focus { background-image: url(../assets/ui/panels/text_input_focus.png); }
+#dialogue .imgbtn { position: static; width: 150px; height: 41px; }
+#memory { position: absolute; left: 120px; right: 120px; top: 40px; bottom: 40px; padding: 18px 22px; overflow-y: auto; font-size: 26px; }
+#memory strong { font: 14px 'Press Start 2P', monospace; color: #b78cff; }
+#memory p { margin: 8px 0; }
+
+.b-login { background-image: url(../assets/ui/buttons/login_normal.png); }
+.b-login:hover { background-image: url(../assets/ui/buttons/login_hover.png); }
+.b-login:active { background-image: url(../assets/ui/buttons/login_pressed.png); }
+.b-login:disabled { background-image: url(../assets/ui/buttons/login_disabled.png); cursor: default; }
+.b-register { background-image: url(../assets/ui/buttons/register_normal.png); }
+.b-register:hover { background-image: url(../assets/ui/buttons/register_hover.png); }
+.b-register:active { background-image: url(../assets/ui/buttons/register_pressed.png); }
+.b-register:disabled { background-image: url(../assets/ui/buttons/register_disabled.png); cursor: default; }
+.b-settings { background-image: url(../assets/ui/buttons/settings_normal.png); }
+.b-settings:hover { background-image: url(../assets/ui/buttons/settings_hover.png); }
+.b-settings:active { background-image: url(../assets/ui/buttons/settings_pressed.png); }
+.b-settings:disabled { background-image: url(../assets/ui/buttons/settings_disabled.png); cursor: default; }
+.b-exit { background-image: url(../assets/ui/buttons/exit_normal.png); }
+.b-exit:hover { background-image: url(../assets/ui/buttons/exit_hover.png); }
+.b-exit:active { background-image: url(../assets/ui/buttons/exit_pressed.png); }
+.b-exit:disabled { background-image: url(../assets/ui/buttons/exit_disabled.png); cursor: default; }
+.b-save { background-image: url(../assets/ui/buttons/save_normal.png); }
+.b-save:hover { background-image: url(../assets/ui/buttons/save_hover.png); }
+.b-save:active { background-image: url(../assets/ui/buttons/save_pressed.png); }
+.b-save:disabled { background-image: url(../assets/ui/buttons/save_disabled.png); cursor: default; }
+.b-back { background-image: url(../assets/ui/buttons/back_normal.png); }
+.b-back:hover { background-image: url(../assets/ui/buttons/back_hover.png); }
+.b-back:active { background-image: url(../assets/ui/buttons/back_pressed.png); }
+.b-back:disabled { background-image: url(../assets/ui/buttons/back_disabled.png); cursor: default; }
+.b-goodbye { background-image: url(../assets/ui/buttons/goodbye_normal.png); }
+.b-goodbye:hover { background-image: url(../assets/ui/buttons/goodbye_hover.png); }
+.b-goodbye:active { background-image: url(../assets/ui/buttons/goodbye_pressed.png); }
+.b-goodbye:disabled { background-image: url(../assets/ui/buttons/goodbye_disabled.png); cursor: default; }
+.b-log-out { background-image: url(../assets/ui/buttons/log_out_normal.png); }
+.b-log-out:hover { background-image: url(../assets/ui/buttons/log_out_hover.png); }
+.b-log-out:active { background-image: url(../assets/ui/buttons/log_out_pressed.png); }
+.b-log-out:disabled { background-image: url(../assets/ui/buttons/log_out_disabled.png); cursor: default; }
+.b-blank { background-image: url(../assets/ui/buttons/blank_normal.png); }
+.b-blank:hover { background-image: url(../assets/ui/buttons/blank_hover.png); }
+.b-blank:active { background-image: url(../assets/ui/buttons/blank_pressed.png); }
+.b-blank:disabled { background-image: url(../assets/ui/buttons/blank_disabled.png); cursor: default; }

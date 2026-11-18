@@ -1,0 +1,17 @@
+outline #000000
+mint (dark, base, light): #0fa874 #3dffb4 #9affd6
+lilac (dark, base, light): #6a3fd1 #b78cff #e8dcff
+yellow (dark, base, light): #d9b30b #ffee3a #fffbb0
+red (dark, base, light): #7a2a33 #b8454f #e08a8f
+brown (dark, base, light): #3e1d08 #7a3b12 #c27a38
+skin (dark, base, light): #d9996a #ffd9a8 #fff0d6
+tan (dark, base, light): #a8674a #d99a72 #f0c19a
+deep (dark, base, light): #4f2c1c #80502f #a9714a
+white (dark, base, light): #aab4d4 #dde3f5 #ffffff
+navy (dark, base, light): #1c2140 #2b3252 #4a5578
+slate (dark, base, light): #3f3b52 #5d5875 #7f7a97
+plum (dark, base, light): #2a2638 #3b3550 #544d70
+wood (dark, base, light): #4d3f4a #6e5a66 #917a86
+metal (dark, base, light): #55556a #7d7d95 #a9a9bf
+moss (dark, base, light): #3d5a4a #55765f #78987c
+asphalt (dark, base, light): #2a2a36 #3a3a4a #4e4e60

@@ -3,90 +3,82 @@
 <head>
     <meta charset="utf-8">
     <title>Agent Appetite</title>
-    <style>
-        body { background: #1a1a2e; color: #eee; font-family: monospace; text-align: center; margin: 0; padding: 20px; }
-        h1 { letter-spacing: 4px; }
-        .hidden { display: none !important; }
-        button { background: #4ecdc4; border: 0; padding: 10px 24px; margin: 6px; font: inherit; cursor: pointer; color: #1a1a2e; }
-        input[type=text], input[type=password] { padding: 8px; font: inherit; }
-        .panel { max-width: 360px; margin: 40px auto; }
-        .panel label { display: block; margin: 10px 0; text-align: left; }
-        .panel label input[type=text], .panel label input[type=password], .panel label input[type=range] { width: 100%; box-sizing: border-box; }
-        #auth-error { color: #ff6b6b; min-height: 1.2em; }
-        #world { position: relative; width: 640px; margin: 0 auto; }
-        #game { display: block; border: 4px solid #333; }
-        #hud { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        #prompt { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); background: #000a; padding: 6px 12px; }
-        #dialogue, #memory { position: absolute; left: 0; right: 0; bottom: 0; background: #111e; padding: 12px; text-align: left; }
-        #dialogue-log { height: 110px; overflow-y: auto; margin-bottom: 8px; }
-        #dialogue-log p, #memory p { margin: 4px 0; }
-        #thinking { font-style: italic; color: #4ecdc4; margin-bottom: 6px; }
-        #dialogue-say:disabled { opacity: .5; cursor: wait; }
-        #toast { position: fixed; top: 16px; left: 50%; transform: translateX(-50%); background: #ff6b6b; color: #1a1a2e; padding: 10px 18px; z-index: 10; }
-        #dialogue-input { width: 60%; }
-    </style>
+    <link rel="icon" href="../assets/ui/favicon/favicon_32.png">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>AGENT APPETITE</h1>
-
-    <div id="menu" class="panel">
-        <button id="btn-login">LOGIN</button><br>
-        <button id="btn-register">REGISTER</button><br>
-        <button id="btn-settings">SETTINGS</button><br>
-        <button id="btn-exit">EXIT</button>
+<div id="app">
+    <div id="menu" class="stage">
+        <img class="logo" src="../assets/ui/logo/agent_appetite_logo.png" alt="Agent Appetite">
+        <button id="btn-login" class="imgbtn b-login" style="left:360px;top:222px" aria-label="Login"></button>
+        <button id="btn-register" class="imgbtn b-register" style="left:360px;top:294px" aria-label="Register"></button>
+        <button id="btn-settings" class="imgbtn b-settings" style="left:360px;top:366px" aria-label="Settings"></button>
+        <button id="btn-exit" class="imgbtn b-exit" style="left:360px;top:438px" aria-label="Exit"></button>
     </div>
 
-    <div id="auth" class="panel hidden">
-        <h2 id="auth-title">Log In</h2>
+    <div id="auth" class="stage hidden">
         <form id="auth-form">
-            <label>Username: <input type="text" id="username" autocomplete="username"></label>
-            <label>Password: <input type="password" id="password" autocomplete="current-password"></label>
+            <div class="box">
+                <div class="title" id="auth-title">LOGIN</div>
+                <input class="field" type="text" id="username" autocomplete="username" maxlength="30" aria-label="Username">
+                <input class="field" type="password" id="password" autocomplete="current-password" aria-label="Password">
+                <button type="button" id="auth-toggle">NO ACCOUNT?</button>
+            </div>
             <p id="auth-error"></p>
-            <button type="submit" id="auth-submit">LOG IN</button>
+            <button type="submit" id="auth-submit" class="imgbtn b-login" aria-label="Submit"></button>
         </form>
-        <button id="auth-toggle">Register new account</button>
-        <button id="auth-back">BACK</button>
+        <button id="auth-back" class="imgbtn b-back" aria-label="Back"></button>
     </div>
 
-    <div id="settings" class="panel hidden">
-        <h2>Settings</h2>
-        <label>Audio volume: <input type="range" id="set-volume" min="1" max="10" value="5"></label>
-        <label>Text speed: <input type="range" id="set-speed" min="1" max="10" value="5"></label>
-        <label><input type="checkbox" id="set-full"> Full screen</label>
-        <button id="settings-save">SAVE</button>
-        <button id="settings-back">BACK</button>
+    <div id="settings" class="stage hidden">
+        <div class="box panel9">
+            <h2>SETTINGS</h2>
+            <label>Audio volume <input type="range" id="set-volume" min="1" max="10" value="5"></label>
+            <label>Text speed <input type="range" id="set-speed" min="1" max="10" value="5"></label>
+            <label><input type="checkbox" id="set-full"> Full screen</label>
+        </div>
+        <button id="settings-save" class="imgbtn b-save" aria-label="Save"></button>
+        <button id="settings-back" class="imgbtn b-back" aria-label="Back"></button>
     </div>
 
     <div id="world" class="hidden">
         <div id="hud">
-            <span>Player: <strong id="hud-user"></strong></span>
-            <span>WASD move &middot; E talk &middot; M memories</span>
-            <button id="btn-logout">LOG OUT</button>
+            <span class="tag">PLAYER: <span id="hud-user"></span></span>
+            <span class="tag">WASD MOVE &middot; E TALK &middot; M MEMORIES</span>
+            <button id="btn-logout" class="imgbtn b-log-out" aria-label="Log out"></button>
         </div>
-        <canvas id="game"></canvas>
-        <div id="prompt" class="hidden"></div>
-        <div id="dialogue" class="hidden">
-            <strong id="dialogue-name"></strong>
-            <div id="dialogue-log"></div>
-            <div id="thinking" class="hidden">thinking...</div>
-            <form id="dialogue-form">
-                <input type="text" id="dialogue-input" placeholder="Say something..." autocomplete="off">
-                <button type="submit" id="dialogue-say">SAY</button>
-                <button type="button" id="dialogue-goodbye">GOODBYE</button>
-            </form>
-        </div>
-        <div id="memory" class="hidden">
-            <strong>NPC Memory</strong>
-            <div id="memory-list"></div>
+        <div id="viewport">
+            <canvas id="game"></canvas>
+            <div id="prompt" class="hidden"></div>
+            <div id="toast" class="hidden"></div>
+            <div id="thinking" class="hidden"></div>
+            <div id="dialogue" class="hidden panel9">
+                <div class="side">
+                    <img id="dialogue-portrait" alt="">
+                    <div id="dialogue-name"></div>
+                </div>
+                <div class="main">
+                    <div id="dialogue-log"></div>
+                    <form id="dialogue-form">
+                        <input type="text" id="dialogue-input" placeholder="Say something..." autocomplete="off" maxlength="500">
+                        <button type="submit" id="dialogue-say" class="imgbtn b-blank pixel">SAY</button>
+                        <button type="button" id="dialogue-goodbye" class="imgbtn b-goodbye" aria-label="Goodbye"></button>
+                    </form>
+                </div>
+            </div>
+            <div id="memory" class="hidden panel9">
+                <strong>NPC MEMORY</strong>
+                <div id="memory-list"></div>
+            </div>
         </div>
     </div>
 
+</div>
     <script src="map.js"></script>
     <script src="movement.js"></script>
     <script src="sprites.js"></script>
+    <script src="scene.js"></script>
     <script src="world.js"></script>
-    <div id="toast" class="hidden"></div>
-
     <script src="httpApi.js"></script>
     <script src="api.js"></script>
     <script src="game.js"></script>
